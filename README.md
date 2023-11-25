@@ -10,3 +10,7 @@
   "timestamp": "2023-11-25T12:34:56Z"
 }
 ```
+## User Roles
+```ts
+const roles = ['user', 'editor', 'admin'];
+```

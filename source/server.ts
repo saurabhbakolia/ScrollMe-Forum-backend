@@ -1,8 +1,12 @@
 /** source/server.ts */
-import http from 'http';
 import express, { Express } from 'express';
 import morgan from 'morgan';
+import dotenv from 'dotenv';
+import userRouter from './routes/UserRoute';
+import DbConnect from './config/database/DbConnect';
 
+// import the .env file
+dotenv.config();
 
 const router: Express = express();
 
@@ -12,6 +16,8 @@ router.use(morgan('dev'));
 router.use(express.urlencoded({ extended: false }));
 // Takes care of the JSON data
 router.use(express.json());
+
+DbConnect();
 
 // Rules of our API
 router.use((req, res, next) => {
@@ -27,6 +33,8 @@ router.use((req, res, next) => {
     next(); // move on to the next middleware
 });
 
+// Routes
+router.use('/scrollme/forum/api/v1', userRouter);
 
 // Error handling
 router.use((req, res, next) => {
