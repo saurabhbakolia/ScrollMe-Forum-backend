@@ -27,11 +27,11 @@ export const login = async (user: DocumentDefinition<I_UserDocument>) => {
 
         const isMatch = bcrypt.compareSync(user.password, foundUser.password);
         if (isMatch) {
-            const token = jwt.sign({
-                _id: foundUser._id?.toString(),
-                name: foundUser.fullName
-            }, JWT_SECRET_KEY, { expiresIn: "2 days" });
-            return { user: { _id: foundUser._id, name: foundUser.fullName }, token: token };
+            return {
+                _id: foundUser._id,
+                username: foundUser.username,
+                roles: foundUser.roles,
+            };
         } else {
             throw new Error("Invalid username or password");
         }

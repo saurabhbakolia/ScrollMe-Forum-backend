@@ -6,9 +6,9 @@ import userRouter from './routes/UserRoute';
 import DbConnect from './config/database/DbConnect';
 
 // import the .env file
-dotenv.config();
 
 const router: Express = express();
+dotenv.config();
 
 // Logging 
 router.use(morgan('dev'));
