@@ -27,6 +27,8 @@ export const login = async (user: DocumentDefinition<I_UserDocument>) => {
 
         const isMatch = bcrypt.compareSync(user.password, foundUser.password);
         if (isMatch) {
+            foundUser.isLoggedIn = true;
+            await foundUser.save();
             return {
                 _id: foundUser._id,
                 username: foundUser.username,
@@ -39,3 +41,11 @@ export const login = async (user: DocumentDefinition<I_UserDocument>) => {
         throw error;
     }
 };
+
+export const logout = async (user: DocumentDefinition<I_UserDocument>, userAgent: any, authToken: any) => {
+    try {
+        console.log(userAgent);
+    } catch (error) {
+        throw error;
+    }
+}

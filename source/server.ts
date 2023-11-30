@@ -4,6 +4,8 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import userRouter from './routes/UserRoute';
 import DbConnect from './config/database/DbConnect';
+import cookieParser from 'cookie-parser';
+
 
 // import the .env file
 
@@ -16,7 +18,8 @@ router.use(morgan('dev'));
 router.use(express.urlencoded({ extended: false }));
 // Takes care of the JSON data
 router.use(express.json());
-
+// Cookie-Parser middleware 
+router.use(cookieParser());
 DbConnect();
 
 // Rules of our API
@@ -25,6 +28,8 @@ router.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // allow all origins
     // set the CORS headers 
     res.header('Access-Control-Allow-Headers', 'origin, X-Requested-With, Content-Type, Accept, Authorization');
+    // allow credentials
+    res.header('Access-Control-Allow-Credentials', 'true');
     // set the CORS method headers
     if (req.method === 'OPTIONS') {
         res.header('Access-Control-Allow-Methods', 'GET PATCH DELETE POST PUT');

@@ -11,6 +11,7 @@ export interface I_UserDocument extends mongoose.Document {
     email: string;
     pronouns: string;
     roles: string[];
+    isLoggedIn: boolean;
     createdAt: Date;
     updatedAt: Date;
 };
@@ -22,6 +23,7 @@ const UserSchema: mongoose.Schema<I_UserDocument> = new mongoose.Schema({
     email: { type: String },
     pronouns: { type: String },
     roles: [{ type: String }],
+    isLoggedIn: { type: Boolean, required: true, default: false },
     createdAt: { type: Date, required: true, default: Date.now() },
     updatedAt: { type: Date, required: true, default: Date.now() }
 });

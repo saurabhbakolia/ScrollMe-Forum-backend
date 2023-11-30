@@ -13,7 +13,7 @@ export const generateUserTokens = async (user: any) => {
         const payload = { _id: user._id?.toString(), name: user.username, role: user.roles };
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: "2 days" });
         const refreshToken = jwt.sign(payload, secretKey, { expiresIn: "30 days" });
-        const isUserTokenExist = await UserTokenModel.findOne({ _id: user._id });
+        const isUserTokenExist = await UserTokenModel.findOne({ userId: user._id });
         if (isUserTokenExist) await UserTokenModel.deleteOne();
 
         console.log("userId", user);
