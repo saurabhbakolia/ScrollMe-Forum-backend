@@ -1,52 +1,32 @@
-'use strict';
-
 import jwt from "jsonwebtoken";
 import { verifyRefreshToken } from "./verifyRefreshToken";
 import UserTokenModel from "../../models/UserToken";
+import { JWTDecodedDataType } from "../../types/jwtDecodedDataType";
+// import { DecodedDataResponseType } from "../../types/DecodedDataResponseType";
 
-exports.newAccessToken = async (req: Request, res: Response) => {
-    if (!req.headers.) {
-        return res.status(400).json({
-            message: "Authorization header is required"
-        });
-    }
+export const newAccessToken = async (refreshToken: string) => {
+    if (!refreshToken) {
+        throw new Error("Refresh token is required");
+    };
 
-    // Extract the token from the Authorization header
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    verifyRefreshToken(refreshToken)
+        .then((decodedData) => {
+            const payload = { _id: decodedData.data._id, username: decodedData.data.username, role: decodedData.data.role };
+            // const payload = { _id: user._id?.toString(), username: user.username, role: user.roles };
+            // const accessToken = jwt.sign(payload, secretKey, { expiresIn: "1 min" });
+            // const refreshToken = jwt.sign(payload, secretKey, { expiresIn: "5 min" });
+            // const isUserTokenExist = await UserTokenModel.findOne({ userId: user._id });
+            // if (isUserTokenExist) await UserTokenModel.deleteOne();
 
-    if (!token) {
-        return res.status(401).json({
-            message: "Bearer token is required"
-        });
-    }
-    verifyRefreshToken(token)
-        .then(async ({ user }) => {
-            const payload = { _id: user._id, roles: user.roles };
-            const accessToken = jwt.sign(
-                payload,
-                'SCROLLME_SECRET',
-                { expiresIn: '15m' }
-            );
-            await UserToken.findOneAndUpdate(
-                { userId: user._id },
-                { accessToken: accessToken },
-            );
-            res.cookie('accessToken', accessToken, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'none',
-                maxAge: 15 * 60 * 1000, // token expiration time in milliseconds
-            });
-            res.status(200).json({
-                status: 'success',
-                message: 'New access token generated successfully!',
-            });
+            // console.log("userId", user);
+            // const userToken = await UserTokenModel.create({
+            //     userId: user._id,
+            //     accessToken: accessToken,
+            //     refreshToken: refreshToken,
+            //     isLoggedIn: false
+            // });
         })
-        .catch(err => {
-            console.log("Error signing access token");
-            return res.status(401).json({
-                message: err.message
-            });
+        .catch((error) => {
+            throw new Error(error);
         });
 };

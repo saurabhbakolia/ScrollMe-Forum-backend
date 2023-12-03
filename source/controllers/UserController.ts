@@ -6,15 +6,19 @@ import { generateUserTokens } from "../utils/tokens/generateToken";
 import { getMongoDBErrorMessage } from "../utils/errors/getMongoDBErrorMessage";
 import UserTokenModel from "../models/UserToken";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { JWTDecodedDataType } from "../types/jwtDecodedDataType";
 
 const JWT_SECRET_KEY = process.env.SECRET_KEY!;
 
 export const loginOne = async (req: Request, res: Response) => {
     try {
         const foundUser = await userService.login(req.body);
+        if(!foundUser) {
+            throw new Error("Invalid username or password");
+        };
         const { accessToken, refreshToken } = await generateUserTokens(foundUser);
-        res.cookie("accessToken", accessToken, { httpOnly: true, maxAge: 2 * 24 * 60 * 60 * 1000 });
-        res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000 });
+        res.cookie("accessToken", accessToken, { httpOnly: true, maxAge: 1 * 60 * 1000 }); // 3 min
+        res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 3 * 60 * 1000 }); // 7 min
         res.status(200).json({
             "status": "success",
             "code": 200,
@@ -83,4 +87,30 @@ export const logoutOne = async (req: Request, res: Response) => {
             timestamp: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
         });
     }
-}
+};
+
+
+export const getUser = async (req: Request, res: Response) => {
+    try {
+        const authenticatedUser = (req as CustomRequest).user;
+        if (!authenticatedUser) {
+            throw new Error('Username required!');
+        }
+        const user = await userService.getUser(authenticatedUser.data);
+        res.status(200).json({
+            status: "success",
+            code: 200,
+            message: "User successfully retrieved",
+            data: user,
+            timestamp: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "error",
+            code: 500,
+            message: getErrorMessage(error),
+            timestamp: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
+        });
+    }
+};
