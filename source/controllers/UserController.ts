@@ -13,7 +13,7 @@ const JWT_SECRET_KEY = process.env.SECRET_KEY!;
 export const loginOne = async (req: Request, res: Response) => {
     try {
         const foundUser = await userService.login(req.body);
-        if(!foundUser) {
+        if (!foundUser) {
             throw new Error("Invalid username or password");
         };
         const { accessToken, refreshToken } = await generateUserTokens(foundUser);
@@ -56,20 +56,13 @@ export const registerOne = async (req: Request, res: Response) => {
 
 export const logoutOne = async (req: Request, res: Response) => {
     try {
-        const accessToken = req.cookies['accessToken'];
-        if (!accessToken) {
-            throw new Error('No token provided');
+        const authenticatedUser = (req as CustomRequest).user;
+        if (!authenticatedUser) {
+            throw new Error('Username required!');
         }
-        const user = jwt.verify(accessToken, JWT_SECRET_KEY);
-        if (!user) {
-            throw new Error('Invalid token');
-        }
-        console.log(user);
-
-        const userToken = await UserTokenModel.findOne({ userId: (user as JwtPayload)._id });
-        console.log(userToken);
+        const userToken = await UserTokenModel.findOne({ userId: authenticatedUser._id });
         if (!userToken) {
-            throw new Error('Invalid token');
+            throw new Error('Invalid user token!');
         }
         await userToken.deleteOne();
 
@@ -94,14 +87,14 @@ export const getUser = async (req: Request, res: Response) => {
     try {
         const authenticatedUser = (req as CustomRequest).user;
         if (!authenticatedUser) {
-            throw new Error('Username required!');
+            throw new Error('No user found!');
         }
-        const user = await userService.getUser(authenticatedUser.data);
+        const userInformation = await userService.getUser(authenticatedUser);
         res.status(200).json({
             status: "success",
             code: 200,
-            message: "User successfully retrieved",
-            data: user,
+            message: "User information successfully retrieved",
+            data: userInformation,
             timestamp: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
         });
 

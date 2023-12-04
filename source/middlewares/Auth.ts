@@ -5,11 +5,12 @@ import { verifyAccessToken } from '../utils/tokens/verifyAccessToken';
 import { DecodedDataResponseType } from '../types/DecodedDataResponseType';
 import { verifyRefreshToken } from '../utils/tokens/verifyRefreshToken';
 import { newAccessToken } from '../utils/tokens/newAccessToken';
+import { JWTDecodedDataType } from '../types/jwtDecodedDataType';
 
 
 export const JWT_SECRET_KEY: Secret = process.env.SECRET_KEY!;
 export interface CustomRequest extends Request {
-    user: DecodedDataResponseType;
+    user: JWTDecodedDataType;
 };
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
@@ -20,39 +21,53 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
             throw new Error('No token provided');
         } else if (!accessToken && refreshToken) {
             verifyRefreshToken(refreshToken)
-                .then((decodedData) => {
-                    (req as CustomRequest).user = decodedData as DecodedDataResponseType;
-                    newAccessToken(refreshToken);
+                .then(async (decodedData) => {
+                    await newAccessToken(refreshToken);
+                    const user: JWTDecodedDataType = {
+                        _id: (decodedData as JWTDecodedDataType)._id,
+                        username: (decodedData as JWTDecodedDataType).username,
+                        roles: (decodedData as JWTDecodedDataType).roles
+                    };
+
+                    (req as CustomRequest).user = user;
                     next();
                 })
                 .catch((error) => {
                     res.status(401).json({
-                        status: "Invalid token",
+                        status: "User RefreshToken expired!",
+                        code: 401,
+                        message: getErrorMessage(error),
+                        timestamp: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
+                    });
+                });
+        } else if (accessToken) {
+            verifyAccessToken(accessToken)
+                .then((decodedData) => {
+                    if (!decodedData) {
+                        throw new Error('Invalid token');
+                    };
+                    const user: JWTDecodedDataType = {
+                        _id: (decodedData as JWTDecodedDataType)._id,
+                        username: (decodedData as JWTDecodedDataType).username,
+                        roles: (decodedData as JWTDecodedDataType).roles
+                    };
+                    (req as CustomRequest).user = user;
+                    next();
+                })
+                .catch((error) => {
+                    // throw new Error(error);
+                    res.status(401).json({
+                        status: "User is logged out, please log in again!",
                         code: 401,
                         message: getErrorMessage(error),
                         timestamp: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
                     });
                 });
         }
-        verifyAccessToken(accessToken)
-            .then((decodedData) => {
-                if (!decodedData) {
-                    throw new Error('Invalid token');
-                };
-                (req as CustomRequest).user = decodedData as DecodedDataResponseType;
-                next();
-            })
-            .catch((error) => {
-                res.status(401).json({
-                    status: "Invalid token",
-                    code: 401,
-                    message: getErrorMessage(error),
-                    timestamp: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
-                });
-            });
+
     } catch (error) {
         res.status(401).json({
-            status: "Invalid token",
+            status: "User authorization failed!",
             code: 401,
             message: getErrorMessage(error),
             timestamp: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })

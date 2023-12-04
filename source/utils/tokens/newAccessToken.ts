@@ -1,32 +1,31 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { verifyRefreshToken } from "./verifyRefreshToken";
 import UserTokenModel from "../../models/UserToken";
 import { JWTDecodedDataType } from "../../types/jwtDecodedDataType";
 // import { DecodedDataResponseType } from "../../types/DecodedDataResponseType";
 
+const secretKey = process.env.SECRET_KEY!;
+
 export const newAccessToken = async (refreshToken: string) => {
-    if (!refreshToken) {
-        throw new Error("Refresh token is required");
-    };
+    return new Promise((resolve, reject) => {
+        if (!refreshToken) {
+            reject(new Error("Refresh token is required"));
+        };
 
-    verifyRefreshToken(refreshToken)
-        .then((decodedData) => {
-            const payload = { _id: decodedData.data._id, username: decodedData.data.username, role: decodedData.data.role };
-            // const payload = { _id: user._id?.toString(), username: user.username, role: user.roles };
-            // const accessToken = jwt.sign(payload, secretKey, { expiresIn: "1 min" });
-            // const refreshToken = jwt.sign(payload, secretKey, { expiresIn: "5 min" });
-            // const isUserTokenExist = await UserTokenModel.findOne({ userId: user._id });
-            // if (isUserTokenExist) await UserTokenModel.deleteOne();
-
-            // console.log("userId", user);
-            // const userToken = await UserTokenModel.create({
-            //     userId: user._id,
-            //     accessToken: accessToken,
-            //     refreshToken: refreshToken,
-            //     isLoggedIn: false
-            // });
-        })
-        .catch((error) => {
-            throw new Error(error);
-        });
+        verifyRefreshToken(refreshToken)
+            .then(async (decodedData) => {
+                const user = decodedData as JWTDecodedDataType;
+                const payload = { _id: user._id, username: user.username, roles: user.roles };
+                const accessToken = jwt.sign(payload, secretKey, { expiresIn: "1 min" });
+                await UserTokenModel.findOneAndUpdate({ userId: user._id }, {
+                    accessToken: accessToken, 
+                    updatedAt: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
+                });
+                console.log("AccessToken updated: ", user);
+                resolve(accessToken);
+            })
+            .catch((error) => {
+                reject(new Error("Error in generating new access token"));
+            });
+    })
 };

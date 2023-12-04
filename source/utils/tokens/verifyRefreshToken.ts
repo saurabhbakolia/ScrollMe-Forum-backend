@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import UserTokenModel from "../../models/UserToken";
-import { DecodedDataResponseType } from "../../types/DecodedDataResponseType";
+import { jwtDecodedResponse } from "../jwt-response/jwtDecodedResponse";
 
 const JWT_SECRET_KEY = process.env.SECRET_KEY!;
 
@@ -17,20 +17,11 @@ export const verifyRefreshToken = async (refreshToken: string) => {
                     if (error) {
                         return reject(new Error("Invalid refresh token"));
                     }
-                    return resolve({
-                        status: "success",
-                        code: 200,
-                        message: "Refresh token valid",
-                        data: decodedDetails,
-                        timestamp: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
-                    });
+                    return resolve(jwtDecodedResponse(decodedDetails as JwtPayload));
                 });
 
-            }).catch((error) => reject({
-                status: "server error",
-                code: 500,
-                message: "Refresh token is not valid" + error,
-                timestamp: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
-            }));
+            }).catch((error) => reject(
+                new Error("Error in verifying refresh token!")
+            ));
     });
 };

@@ -10,7 +10,7 @@ if (!secretKey) {
 
 export const generateUserTokens = async (user: any) => {
     try {
-        const payload = { _id: user._id?.toString(), username: user.username, role: user.roles };
+        const payload = { _id: user._id?.toString(), username: user.username, roles: user.roles };
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: "1 min" });
         const refreshToken = jwt.sign(payload, secretKey, { expiresIn: "3 min" });
         const isUserTokenExist = await UserTokenModel.findOne({ userId: user._id });
