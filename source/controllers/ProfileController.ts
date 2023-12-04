@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as profileService from "../services/UserProfileService";
 import { getErrorMessage } from "../utils/errors/getErrorMessage";
+import { CustomRequest } from "../middlewares/Auth";
 
 
 export const createProfile = async (req: Request, res: Response) => {

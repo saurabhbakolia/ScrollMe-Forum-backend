@@ -17,8 +17,8 @@ export const loginOne = async (req: Request, res: Response) => {
             throw new Error("Invalid username or password");
         };
         const { accessToken, refreshToken } = await generateUserTokens(foundUser);
-        res.cookie("accessToken", accessToken, { httpOnly: true, maxAge: 1 * 60 * 1000 }); // 3 min
-        res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 3 * 60 * 1000 }); // 7 min
+        res.cookie("accessToken", accessToken, { httpOnly: true, maxAge: 10 * 60 * 60 * 1000 }); // 10 min
+        res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 1 * 24 * 60 * 60 * 1000 }); // 1 day
         res.status(200).json({
             "status": "success",
             "code": 200,

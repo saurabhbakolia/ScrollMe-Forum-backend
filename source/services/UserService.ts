@@ -63,6 +63,7 @@ export const getUser = async (user: JWTDecodedDataType) => {
                 throw new Error("User not found");
             }
             return {
+                userId: getUser._id,
                 fullName: getUser.fullName, 
                 email: getUser.email
             }
