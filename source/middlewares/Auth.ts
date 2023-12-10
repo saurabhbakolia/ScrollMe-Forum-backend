@@ -24,7 +24,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
             verifyRefreshToken(refreshToken)
                 .then(async (decodedData) => {
                     const newToken = await newAccessToken(refreshToken);
-                    res.cookie("accessToken", newToken, { httpOnly: true, maxAge: 1 * 60 * 60 * 1000 }); // 15 min
+                    res.cookie("accessToken", newToken, { httpOnly: true, maxAge: 1 * 60 * 1000 }); // 15 min
                     const user: JWTDecodedDataType = {
                         _id: (decodedData as JWTDecodedDataType)._id,
                         username: (decodedData as JWTDecodedDataType).username,
