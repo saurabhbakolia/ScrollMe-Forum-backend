@@ -5,11 +5,20 @@ import dotenv from 'dotenv';
 import userRouter from './routes/UserRoute';
 import DbConnect from './config/database/DbConnect';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 
 
 // import the .env file
 
 const router: Express = express();
+const corsOptions = {
+    origin: 'http://localhost:3000',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    optionsSuccessStatus: 204,
+    withCredentials: true,
+};
+router.use(cors(corsOptions));
 dotenv.config();
 
 // Logging 
@@ -21,22 +30,6 @@ router.use(express.json());
 // Cookie-Parser middleware 
 router.use(cookieParser());
 DbConnect();
-
-// Rules of our API
-router.use((req, res, next) => {
-    // set the CORS policy
-    res.header('Access-Control-Allow-Origin', '*'); // allow all origins
-    // set the CORS headers 
-    res.header('Access-Control-Allow-Headers', 'origin, X-Requested-With, Content-Type, Accept, Authorization');
-    // allow credentials
-    res.header('Access-Control-Allow-Credentials', 'true');
-    // set the CORS method headers
-    if (req.method === 'OPTIONS') {
-        res.header('Access-Control-Allow-Methods', 'GET PATCH DELETE POST PUT');
-        return res.status(200).json({});
-    }
-    next(); // move on to the next middleware
-});
 
 // Routes
 router.use('/scrollme/forum/api/v1', userRouter);
@@ -54,5 +47,5 @@ router.use((req, res, next) => {
 
 
 // Server
-const PORT: any = process.env.PORT || 3000;
+const PORT: any = process.env.PORT || 8080;
 router.listen(PORT, () => console.log(`The server is running on port ${PORT}`));

@@ -16,9 +16,9 @@ export const newAccessToken = async (refreshToken: string) => {
             .then(async (decodedData) => {
                 const user = decodedData as JWTDecodedDataType;
                 const payload = { _id: user._id, username: user.username, roles: user.roles };
-                const accessToken = jwt.sign(payload, secretKey, { expiresIn: "1 min" });
+                const accessToken = jwt.sign(payload, secretKey, { expiresIn: "3 min" });
                 await UserTokenModel.findOneAndUpdate({ userId: user._id }, {
-                    accessToken: accessToken, 
+                    accessToken: accessToken,
                     updatedAt: new Date().toLocaleString('en-US', { formatMatcher: 'best fit' })
                 });
                 console.log("AccessToken updated: ", user);

@@ -20,9 +20,11 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
         if (!accessToken && !refreshToken) {
             throw new Error('No token provided');
         } else if (!accessToken && refreshToken) {
+            console.log("AccessToken expired and RefreshToken is available");
             verifyRefreshToken(refreshToken)
                 .then(async (decodedData) => {
-                    await newAccessToken(refreshToken);
+                    const newToken = await newAccessToken(refreshToken);
+                    res.cookie("accessToken", newToken, { httpOnly: true, maxAge: 1 * 60 * 60 * 1000 }); // 15 min
                     const user: JWTDecodedDataType = {
                         _id: (decodedData as JWTDecodedDataType)._id,
                         username: (decodedData as JWTDecodedDataType).username,
@@ -41,6 +43,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
                     });
                 });
         } else if (accessToken) {
+            console.log("AccessToken is available");
             verifyAccessToken(accessToken)
                 .then((decodedData) => {
                     if (!decodedData) {
